@@ -267,12 +267,6 @@ uvicorn app:app --reload
 <li>Open Pull Request</li>
 </ol>
 
-<hr>
-
-<hr>
-
-
-<hr>
 
 <h2>⭐ Support</h2>
 <p>If you like this project, give it a star on GitHub.</p>
