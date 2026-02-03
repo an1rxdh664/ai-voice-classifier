@@ -4,40 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Voice Classifier</title>
-    <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            margin: 40px;
-            line-height: 1.6;
-            background-color: #0d1117;
-            color: #e6edf3;
-        }
-        h1, h2, h3 {
-            color: #58a6ff;
-        }
-        code, pre {
-            background-color: #161b22;
-            padding: 10px;
-            border-radius: 8px;
-            display: block;
-            overflow-x: auto;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 10px;
-        }
-        table, th, td {
-            border: 1px solid #30363d;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-        }
-        ul {
-            margin-left: 20px;
-        }
-    </style>
 </head>
 
 <body>
