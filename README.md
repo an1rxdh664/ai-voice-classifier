@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Voice Classifier</title>
 </head>
 
 <body>
@@ -275,8 +274,6 @@ uvicorn app:app --reload
 
 <hr>
 
-<h2>👨‍💻 Author</h2>
-<p>Aditya Sharma</p>
 
 <hr>
 
