@@ -269,9 +269,6 @@ uvicorn app:app --reload
 
 <hr>
 
-<h2>📜 License</h2>
-<p>MIT License</p>
-
 <hr>
 
 
