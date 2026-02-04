@@ -10,6 +10,7 @@ from typing import Optional
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from predict_utils import predict_from_file
+from base64 import b64decode
 
 # Env variables
 load_dotenv()
@@ -33,7 +34,8 @@ async def verify_api_key(x_api_key: str = Header(None)):
 
 # ============ Request Body Models ============
 class AudioURLRequest(BaseModel):
-    audio_url: str
+    audio_url: Optional[str] = None
+    audio_base64: Optional[str] = None
 
 # ============ API Endpoints ============
 @app.get("/")
@@ -74,21 +76,37 @@ async def predict(
 ):
     temp_file = None
     try:
-        audio_url = request.audio_url
-        
-        try:
-            headers = {"User-Agent": "Mozilla/5.0"}
-            response = requests.get(audio_url, headers=headers, timeout=15)
-            response.raise_for_status()
-            audio_content = response.content
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=400, detail=f"Download failed: {str(e)}")
+        # CASE 1 — Base64 encoded audio
+        if request.audio_base64:
+            try:
+                audio_bytes = b64decode(request.audio_base64)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid base64: {str(e)}")
 
-        suffix = ".mp3"
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            tmp.write(audio_content)
-            temp_file = tmp.name
-        filename = audio_url.split("/")[-1]
+            suffix = ".wav"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                tmp.write(audio_bytes)
+                temp_file = tmp.name
+            filename = "audio_base64.wav"
+
+        # CASE 2 — Audio URL
+        elif request.audio_url:
+            try:
+                headers = {"User-Agent": "Mozilla/5.0"}
+                response = requests.get(request.audio_url, headers=headers, timeout=15)
+                response.raise_for_status()
+                audio_content = response.content
+            except requests.exceptions.RequestException as e:
+                raise HTTPException(status_code=400, detail=f"Download failed: {str(e)}")
+
+            suffix = ".mp3"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                tmp.write(audio_content)
+                temp_file = tmp.name
+            filename = request.audio_url.split("/")[-1]
+
+        else:
+            raise HTTPException(status_code=400, detail="No audio_url or audio_base64 provided")
 
         result = predict_from_file(temp_file)
 
