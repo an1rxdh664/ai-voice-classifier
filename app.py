@@ -8,8 +8,12 @@ import uvicorn
 import requests
 from typing import Optional
 from pydantic import BaseModel
-
+from dotenv import load_dotenv
 from predict_utils import predict_from_file
+
+# Env variables
+load_dotenv()
+
 
 # Create FastAPI app
 app = FastAPI(
@@ -20,7 +24,9 @@ app = FastAPI(
 
 # ============ API Key Verification ============
 async def verify_api_key(x_api_key: str = Header(None)):
-    valid_key = "e221fb9af59ebdbcde7a8e14c59fac51826bdade64cc3663837e792c22919960"
+    valid_key = os.getenv("API_KEY")
+    if not valid_key:
+        raise HTTPException(status_code=500, detail="API_KEY not configured")
     if x_api_key != valid_key:
         raise HTTPException(status_code=403, detail="Invalid API key")
     return True
