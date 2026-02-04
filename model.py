@@ -40,8 +40,8 @@ def train_model():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    print(f"\nTotal training samples: {len(X)} (AI: {y_labels.count(1)}, Human: {y_labels.count(0)})")
-
+    # print(f"\nTotal training samples: {len(X)} (AI: {y_labels.count(1)}, Human: {y_labels.count(0)})")
+    print(f"\nTotal training samples: {len(X)} (AI: {int(np.sum(y_labels == 1))}, Human: {int(np.sum(y_labels == 0))})")
 
     # Train model optimized for small datasets
     model = RandomForestClassifier( # 0 - no max depth and 1 lowest depth
