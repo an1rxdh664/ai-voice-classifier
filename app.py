@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi import Depends, Header, HTTPException
 from fastapi.responses import JSONResponse
 import numpy as np
 import os
@@ -8,12 +9,28 @@ import uvicorn
 
 from predict_utils import predict_from_file
 
+from dotenv import load_dotenv
+load_dotenv()  # loads variables from .env
+
 # Create FastAPI app
 app = FastAPI(
     title="AI Voice Detection API",
     description="Detects if a voice is AI-generated or human",
     version="1.0"
 )
+
+# API KEY VERIFICATION
+def verify_api_key(x_api_key: str = Header(None)):
+    server_key = os.getenv("API_KEY")
+
+    if server_key is None:
+        raise HTTPException(status_code=500, detail="API key not configured on server")
+
+    if x_api_key != server_key:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+
+    return True
+
 
 # ============ API Endpoints ============
 @app.get("/")
@@ -49,7 +66,10 @@ def info():
 
 
 @app.post("/predict")
-async def predict(file: UploadFile = File(...)):
+async def predict(
+        file: UploadFile = File(...),
+        _verify: bool = Depends(verify_api_key)
+    ):
     temp_file = None
     try:
         # Save uploaded file temporarily

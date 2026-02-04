@@ -6,3 +6,5 @@ env/
 
 # Ignore Python bytecode/cache directories
 __pycache__/
+
+.env
