@@ -33,9 +33,11 @@ async def verify_api_key(x_api_key: str = Header(None)):
     return True
 
 # ============ Request Body Models ============
-class AudioURLRequest(BaseModel):
-    audio_url: Optional[str] = None
-    audio_base64: Optional[str] = None
+class AudioRequest(BaseModel):
+    language: Optional[str] = None
+    audioFormat: Optional[str] = None
+    audioBase64: Optional[str] = None
+    audio_url: Optional[str] = None  # keep old field to avoid breaking existing tests
 
 # ============ API Endpoints ============
 @app.get("/")
@@ -71,13 +73,27 @@ def info():
 
 @app.post("/predict")
 async def predict(
-    request: AudioURLRequest = Body(...),
+    request: AudioRequest = Body(...),
     _verify: bool = Depends(verify_api_key)
 ):
     temp_file = None
     try:
         # CASE 1 — Base64 encoded audio
-        if request.audio_base64:
+        # CASE 1 — Hackathon Format (audioBase64)
+        if request.audioBase64:
+            try:
+                audio_bytes = b64decode(request.audioBase64)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid base64: {str(e)}")
+
+            suffix = ".wav"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                tmp.write(audio_bytes)
+                temp_file = tmp.name
+            filename = "audio_base64.wav"
+
+        # CASE 1B — Old Format (audio_base64)
+        elif request.audio_base64:
             try:
                 audio_bytes = b64decode(request.audio_base64)
             except Exception as e:
@@ -88,6 +104,7 @@ async def predict(
                 tmp.write(audio_bytes)
                 temp_file = tmp.name
             filename = "audio_base64.wav"
+
 
         # CASE 2 — Audio URL
         elif request.audio_url:
