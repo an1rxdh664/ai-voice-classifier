@@ -1,13 +1,196 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
+# AI Voice Detection System
 
-<body>
+## Project Overview
 
-<h1>🎙️ AI Voice Classifier</h1>
+This project is an AI Voice Detection System that classifies an input audio sample as either **AI-generated** or **Human-spoken**.  
+The system works by extracting acoustic and spectral features from audio files and applying a trained machine learning model to make predictions.
+
+The project includes:
+- Audio feature extraction
+- Model training
+- Model inference
+- A REST API built using FastAPI
+
+---
+
+## How the System Works
+
+The complete workflow of the project is as follows:
+
+1. An audio input is provided to the system (Base64, URL, or file upload)
+2. The audio is temporarily saved on the server
+3. Audio features are extracted using Librosa
+4. Extracted features are standardized using a trained scaler
+5. A Random Forest classifier predicts whether the voice is AI-generated or Human
+6. The result is returned as a structured JSON response
+
+---
+
+## Audio Feature Extraction
+
+For every audio file, the system extracts a fixed-length numerical feature vector.  
+These features capture both time-domain and frequency-domain characteristics of the voice signal.
+
+### Extracted Features
+
+Each feature type includes:
+- Mean
+- Standard Deviation
+- Variance
+- Mean Difference
+
+Feature groups:
+- MFCC (Mel-Frequency Cepstral Coefficients)
+- Zero Crossing Rate (ZCR)
+- Spectral Centroid
+- Root Mean Square (RMS) Energy
+- Pitch (Fundamental Frequency)
+
+**Total features per audio file: 20**
+
+---
+
+## Machine Learning Model
+
+- Algorithm: Random Forest Classifier
+- Number of estimators: 50
+- Maximum depth: 5
+- Feature scaling: StandardScaler
+
+The model is trained using labeled audio samples:
+- AI-generated voices
+- Human voices
+
+After training:
+- The model is saved as `model.pkl`
+- The scaler is saved as `scaler.pkl`
+
+These are reused during prediction.
+
+---
+
+## API Implementation
+
+The project exposes a REST API using FastAPI.
+
+### API Security
+- Requests are authenticated using an API key passed via the `x-api-key` header
+
+---
+
+## API Endpoints
+
+### Root Endpoint
+
+
+GET /
+
+Returns basic API information and available routes.
+
+---
+
+### Voice Detection (Base64 or URL)
+
+
+POST /api/voice-detection
+
+
+**Request Body (JSON):**
+```json
+{
+  "language": "en",
+  "audioFormat": "mp3",
+  "audioBase64": "<base64_encoded_audio>"
+}
+
+
+or
+
+{
+  "audio_url": "https://example.com/audio.mp3"
+}
+
+
+Response:
+
+{
+  "status": "success",
+  "language": "en",
+  "classification": "AI_GENERATED",
+  "confidenceScore": 0.92,
+  "explanation": "Model confidence: 92.00%"
+}
+
+Voice Detection (File Upload)
+POST /predict-upload
+
+
+Accepts an audio file directly and returns the prediction result.
+
+Project Structure
+├── data/
+│   ├── ai/                # AI-generated voice samples
+│   └── human/             # Human voice samples
+│
+├── model/
+│   ├── model.pkl          # Trained model
+│   └── scaler.pkl         # Feature scaler
+│
+├── extract.py             # Feature extraction logic
+├── model.py               # Model training script
+├── predict_utils.py       # Prediction utilities
+├── app.py                 # FastAPI application
+├── requirements.txt       # Dependencies
+└── README.md              # Project documentation
+
+Training the Model
+
+To train the model, place the audio samples in their respective folders:
+
+data/ai/
+
+data/human/
+
+Then run:
+
+python model.py
+
+
+This will:
+
+Extract features
+
+Train the model
+
+Save the trained model and scaler
+
+Running the API
+
+Start the FastAPI server using:
+
+uvicorn app:app --host 0.0.0.0 --port 8000
+
+
+The API documentation will be available at:
+
+/docs
+
+Dependencies
+
+All required libraries are listed in requirements.txt.
+Key dependencies include:
+
+FastAPI
+
+Librosa
+
+NumPy
+
+Scikit-learn
+
+Joblib
+
+Uvicorn
 
 <h2>📌 Project Overview</h2>
 <p>
