@@ -78,35 +78,22 @@ async def predict(
 ):
     temp_file = None
     try:
-        # CASE 1 — Base64 encoded audio
         # CASE 1 — Hackathon Format (audioBase64)
         if request.audioBase64:
             try:
                 audio_bytes = b64decode(request.audioBase64)
             except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Invalid base64: {str(e)}")
+                return JSONResponse(
+                    status_code=400,
+                    content={"status": "error", "message": f"Invalid base64: {str(e)}"}
+                )
 
-            suffix = ".wav"
+            suffix = ".mp3"
             with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
                 tmp.write(audio_bytes)
                 temp_file = tmp.name
-            filename = "audio_base64.wav"
 
-        # CASE 1B — Old Format (audio_base64)
-        elif request.audio_base64:
-            try:
-                audio_bytes = b64decode(request.audio_base64)
-            except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Invalid base64: {str(e)}")
-
-            suffix = ".wav"
-            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-                tmp.write(audio_bytes)
-                temp_file = tmp.name
-            filename = "audio_base64.wav"
-
-
-        # CASE 2 — Audio URL
+        # CASE 2 — Audio URL (backward compatibility)
         elif request.audio_url:
             try:
                 headers = {"User-Agent": "Mozilla/5.0"}
@@ -114,32 +101,43 @@ async def predict(
                 response.raise_for_status()
                 audio_content = response.content
             except requests.exceptions.RequestException as e:
-                raise HTTPException(status_code=400, detail=f"Download failed: {str(e)}")
+                return JSONResponse(
+                    status_code=400,
+                    content={"status": "error", "message": f"Download failed: {str(e)}"}
+                )
 
             suffix = ".mp3"
             with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
                 tmp.write(audio_content)
                 temp_file = tmp.name
-            filename = request.audio_url.split("/")[-1]
 
         else:
-            raise HTTPException(status_code=400, detail="No audio_url or audio_base64 provided")
+            return JSONResponse(
+                status_code=400,
+                content={"status": "error", "message": "No audioBase64 or audio_url provided"}
+            )
 
         result = predict_from_file(temp_file)
 
+        # Map your prediction to hackathon format
+        classification = "AI_GENERATED" if result["label"] == "AI_GENERATED" else "HUMAN"
+        confidence = result["confidence"]
+
         return {
-            "filename": filename,
-            "prediction": result["label"],
-            "confidence": f"{result['confidence'] * 100:.2f}%",
-            "confidence_score": result["confidence"],
-            "probabilities": result["probabilities"]
+            "status": "success",
+            "language": request.language or "Unknown",
+            "classification": classification,
+            "confidenceScore": confidence,
+            "explanation": f"Model confidence: {confidence * 100:.2f}%"
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Prediction error: {e}", file=sys.stderr)
         return JSONResponse(
             status_code=400,
-            content={"error": f"Failed to process audio: {str(e)}"}
+            content={"status": "error", "message": f"Failed to process audio: {str(e)}"}
         )
     finally:
         if temp_file and os.path.exists(temp_file):
