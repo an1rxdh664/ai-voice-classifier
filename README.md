@@ -143,31 +143,6 @@ All requests require an API key via the `x-api-key` header.
 | Preprocessing | StandardScaler normalization |
 | Output | Binary classification + confidence score |
 
-## Future Enhancements
-
-- Deep learning models (CNN/LSTM)
-- Real-time streaming detection
-- Multi-language support
-- Docker containerization
-- Cloud deployment (AWS/GCP)
-
-## Security
-
-- API key authentication
-- File type validation
-- Upload size limits recommended
-- Rate limiting for production use
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Open a Pull Request
-
-## License
-
-[Add your license here]
 
 ---
 
