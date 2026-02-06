@@ -1,83 +1,49 @@
-🎙️ AI Voice Classifier
-📌 Project Overview
+# AI Voice Detection System
 
-AI Voice Classifier is a backend system designed to detect whether an audio sample is human voice or AI-generated voice using machine learning and audio signal processing.
+A machine learning-powered REST API that classifies audio samples as either AI-generated or human voice using acoustic feature extraction and Random Forest classification.
 
-The system exposes a FastAPI REST endpoint where users upload an audio file. The backend processes the file, extracts audio features, runs them through a trained ML model, and returns:
+## Overview
 
-Prediction (AI or Human)
+This system analyzes audio files by extracting spectral and acoustic features, then applies a trained ML model to detect AI-generated voices. Built with FastAPI, it provides a simple API for real-time voice classification.
 
-Confidence Score
+**Use Cases:**
+- Deepfake detection
+- Voice authentication validation
+- AI content moderation
+- Security and fraud prevention
 
-This project is built for real-world scenarios like:
+## How It Works
 
-Deepfake detection
+### Training Pipeline
+1. Audio samples organized in `data/ai/` and `data/human/` folders
+2. Features extracted using Librosa (MFCC, pitch, spectral, energy)
+3. Random Forest model trained on extracted features
+4. Model and scaler saved as `.pkl` files
 
-Voice authentication validation
+### Prediction Pipeline
+1. Audio file uploaded via API
+2. Features extracted and standardized
+3. Model predicts classification with confidence score
+4. JSON response returned
 
-AI content moderation
+## Features Extracted
 
-Security & fraud prevention
+Each audio file is converted into a 20-feature vector including:
+- MFCC (Mel-Frequency Cepstral Coefficients)
+- Zero Crossing Rate
+- Spectral Centroid
+- RMS Energy
+- Pitch (Fundamental Frequency)
 
-⚙️ How The System Works
-🧠 Stage 1 — Training Pipeline
+Each feature includes mean, standard deviation, variance, and mean difference.
 
-Audio datasets are stored in:
+## Project Structure
 
-data/ai/
-
-data/human/
-
-Audio is processed using Librosa to extract:
-
-MFCC (Mel Frequency Cepstral Coefficients)
-
-Pitch
-
-Spectral Features
-
-Energy Features
-
-Extracted features are used to train a ML model:
-
-Example: Random Forest Classifier
-
-Two important artifacts are saved:
-
-model.pkl → Trained ML model
-
-scaler.pkl → Feature normalizer
-
-🚀 Stage 2 — Prediction Pipeline
-
-User uploads audio to FastAPI endpoint
-
-Server:
-
-Loads trained model + scaler
-
-Extracts same features from uploaded audio
-
-Scales features
-
-Runs prediction
-
-API returns:
-
-{
-  "prediction": "AI",
-  "confidence": 0.92
-}
-
-📂 Project Structure
-ai-voice-classifier/
-│
+```
+ai-voice-detection/
 ├── data/
-│   ├── ai/
-│   │   └── insert_ai_data.txt
-│   ├── human/
-│   │   └── insert_human_data.txt
-│
+│   ├── ai/              # AI-generated samples
+│   └── human/           # Human voice samples
 ├── model/
 │   ├── model.pkl        # Trained classifier
 │   └── scaler.pkl       # Feature scaler
@@ -86,174 +52,98 @@ ai-voice-classifier/
 ├── model.py             # Model training
 ├── predict_utils.py     # Prediction logic
 ├── requirements.txt
-├── README.md
-└── .gitignore
+└── README.md
+```
 
-📄 File Responsibilities
-🔹 app.py
+## Installation
 
-FastAPI server entry point
-Handles:
+```bash
+# Clone repository
+git clone https://github.com/YOUR_USERNAME/ai-voice-detection.git
+cd ai-voice-detection
 
-API routes
-
-File upload handling
-
-Calling prediction pipeline
-
-🔹 extract.py
-
-Handles audio feature extraction:
-
-Loads audio using Librosa
-
-Extracts MFCC, pitch, spectral, energy features
-
-Converts audio → numerical feature vector
-
-🔹 model.py
-
-Training pipeline:
-
-Loads dataset
-
-Trains ML model
-
-Saves:
-
-model.pkl
-
-scaler.pkl
-
-🔹 predict_utils.py
-
-Prediction helper logic:
-
-Loads saved model + scaler
-
-Prepares input features
-
-Returns prediction + confidence
-
-🧪 Tech Stack
-Backend
-
-FastAPI
-
-Python
-
-Machine Learning
-
-Scikit-Learn
-
-Librosa
-
-NumPy
-
-Pandas
-
-Joblib / Pickle
-
-📦 Installation & Setup
-1️⃣ Clone Repository
-git clone https://github.com/YOUR_USERNAME/ai-voice-classifier.git
-cd ai-voice-classifier
-
-2️⃣ Create Virtual Environment
+# Create virtual environment
 python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate   # Windows
 
-
-Activate:
-
-Windows:
-
-venv\Scripts\activate
-
-
-Linux / Mac:
-
-source venv/bin/activate
-
-3️⃣ Install Dependencies
+# Install dependencies
 pip install -r requirements.txt
+```
 
-▶️ Running The Server
-uvicorn app:app --reload
+## Training the Model
 
+```bash
+# Place audio samples in data/ai/ and data/human/
+python model.py
+```
 
-Server runs at:
+This extracts features, trains the model, and saves artifacts to the `model/` directory.
 
-http://127.0.0.1:8000
+## Running the API
 
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8000
+```
 
-Swagger Docs:
+Access the API at `http://localhost:8000` and interactive docs at `http://localhost:8000/docs`
 
-http://127.0.0.1:8000/docs
+## API Endpoints
 
-📡 API Usage
-Upload Audio For Prediction
+### Voice Detection (JSON)
+**POST** `/api/voice-detection`
 
-Endpoint
-
-POST /predict
-
-
-Request
-
-Form Data
-
-Key: file
-
-Value: Audio File (.wav recommended)
-
-Example Response
+```json
 {
-  "prediction": "Human",
-  "confidence": 0.87
+  "language": "en",
+  "audioFormat": "mp3",
+  "audioBase64": "<base64_encoded_audio>"
 }
+```
 
-🧬 Model Details
-Component	Purpose
-Feature Extraction	Converts audio → numerical signals
-Scaler	Normalizes feature values
-ML Model	Classifies voice type
-📊 Future Improvements
+Or with URL:
+```json
+{
+  "audio_url": "https://example.com/audio.mp3"
+}
+```
 
-Add Deep Learning Models (CNN / LSTM)
+**Response:**
+```json
+{
+  "status": "success",
+  "language": "en",
+  "classification": "AI_GENERATED",
+  "confidenceScore": 0.92,
+  "explanation": "Model confidence: 92.00%"
+}
+```
 
-Support More Languages
+### Voice Detection (File Upload)
+**POST** `/predict-upload`
 
-Real-time Streaming Detection
+Upload audio file directly via form data.
 
-Docker Deployment
+### Authentication
+All requests require an API key via the `x-api-key` header.
 
-Cloud Hosting (AWS / GCP)
+## Tech Stack
 
-🔒 Security Considerations
+- **Backend:** FastAPI, Python
+- **ML/Audio:** Scikit-learn, Librosa, NumPy, Pandas
+- **Model:** Random Forest Classifier (50 estimators, max depth 5)
+- **Scaling:** StandardScaler
 
-Validate file type
+## Model Details
 
-Limit upload size
-
-Add API authentication
-
-Rate limiting
-
-🤝 Contributing
-
-Contributions are welcome.
-
-Steps:
-
-Fork repository
-
-Create feature branch
-
-Commit changes
-
-Open Pull Request
+| Component | Details |
+|-----------|---------|
+| Algorithm | Random Forest Classifier |
+| Features | 20 acoustic/spectral features |
+| Preprocessing | StandardScaler normalization |
+| Output | Binary classification + confidence score |
 
 
-⭐ If You Like This Project
+---
 
-Give it a star on GitHub.
+⭐ If you find this project useful, please give it a star on GitHub!
