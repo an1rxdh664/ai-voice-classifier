@@ -1,0 +1,10 @@
+# Ignore dataset directory
+data/
+
+# Ignore virtual environment
+env/
+
+# Ignore Python bytecode/cache directories
+__pycache__/
+
+.env

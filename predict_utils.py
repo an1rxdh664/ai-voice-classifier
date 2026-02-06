@@ -17,7 +17,7 @@ def predict_from_file(file_path):
     prediction = model.predict(feat_scaled)[0]             # 0 or 1
     probability = model.predict_proba(feat_scaled)[0]      # [prob_human, prob_ai]
 
-    prediction_label = "AI" if prediction == 1 else "Human"
+    prediction_label = "AI_GENERATED" if prediction == 1 else "HUMAN"
     confidence = float(probability[prediction])                  # prob of chosen label
 
     return {
