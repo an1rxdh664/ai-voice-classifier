@@ -8,3 +8,6 @@ env/
 __pycache__/
 
 .env
+
+# Ignore test.json
+test.json
